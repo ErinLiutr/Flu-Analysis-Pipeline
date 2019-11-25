@@ -23,55 +23,55 @@ m2 = sys.argv[5]
 #metadataA = "metadataA.csv"
 #metadataB = "metadataB.csv"
 
-#
-#
-# print "---------------Read Mapping Starting for %s %s---------------"%(reads, type)
-#
-# # Setting up working directories
-# dirs = ["references","01-trimmomatic", "02-bowtie2-sam", "03-bam", "04-sorted-bam", "05-merged-bam", "06-vcf", "07-coverage", "08-fasta"]
-#
-# for d in dirs:
-#     if not os.path.exists(d):
-#         os.mkdir(d)
-#
-# print "---------------Directories all set!---------------"
-#
-# # STEP 1 clean up reads with Trimmomatic
-#
-# # STEP 2 read mapping with bowtie2
-# # build reference
-# build_name = type[-1].lower() + "_build"
-# os.system("bowtie2-build %s %s"%(reference, build_name))
-# os.system("mv %s* references"%build_name)
-#
-# # for id in os.listdir(readsA):
-# #     print "---------------Current id: %s---------------"%id
-# #     for file in os.listdir(readsA + "/" + id):
-# #         if "R1" in file:
-# #             read1 = readsA + "/" + id + "/" + file
-# #         if "R2" in file:
-# #             read2 = readsA + "/" + id + "/" + file
-# #
-# #     output = "02-bowtie2-sam/UpperA/%s"%id
-# #
-# #     print "read 1: %s \nread 2: %s\noutput: %s\n"%(read1, read2, output)
-# #     os.system("bowtie2 -x references/a_build --quiet -1 %s -2 %s -S %s.sam"%(read1, read2, output))
-#
-# for id in os.listdir(reads):
+
+
+print "---------------Read Mapping Starting for %s %s---------------"%(reads, type)
+
+# Setting up working directories
+dirs = ["references","01-trimmomatic", "02-bowtie2-sam", "03-bam", "04-sorted-bam", "05-merged-bam", "06-vcf", "07-coverage", "08-fasta"]
+
+for d in dirs:
+    if not os.path.exists(d):
+        os.mkdir(d)
+
+print "---------------Directories all set!---------------"
+
+# STEP 1 clean up reads with Trimmomatic
+
+# STEP 2 read mapping with bowtie2
+# build reference
+build_name = type[-1].lower() + "_build"
+os.system("bowtie2-build %s %s"%(reference, build_name))
+os.system("mv %s* references"%build_name)
+
+# for id in os.listdir(readsA):
 #     print "---------------Current id: %s---------------"%id
-#     for file in os.listdir(reads + "/" + id):
+#     for file in os.listdir(readsA + "/" + id):
 #         if "R1" in file:
-#             read1 = reads + "/" + id + "/" + file
+#             read1 = readsA + "/" + id + "/" + file
 #         if "R2" in file:
-#             read2 = reads + "/" + id + "/" + file
+#             read2 = readsA + "/" + id + "/" + file
 #
-#     output = "02-bowtie2-sam/%s/%s"%(type, id)
+#     output = "02-bowtie2-sam/UpperA/%s"%id
 #
 #     print "read 1: %s \nread 2: %s\noutput: %s\n"%(read1, read2, output)
-#     os.system("bowtie2 -x references/%s --quiet -1 %s -2 %s -S %s.sam"%(build_name, read1, read2, output))
-#
-# print "---------------Read Mapping Finished---------------"
-#
+#     os.system("bowtie2 -x references/a_build --quiet -1 %s -2 %s -S %s.sam"%(read1, read2, output))
+
+for id in os.listdir(reads):
+    print "---------------Current id: %s---------------"%id
+    for file in os.listdir(reads + "/" + id):
+        if "R1" in file:
+            read1 = reads + "/" + id + "/" + file
+        if "R2" in file:
+            read2 = reads + "/" + id + "/" + file
+
+    output = "02-bowtie2-sam/%s/%s"%(type, id)
+
+    print "read 1: %s \nread 2: %s\noutput: %s\n"%(read1, read2, output)
+    os.system("bowtie2 -x references/%s --quiet -1 %s -2 %s -S %s.sam"%(build_name, read1, read2, output))
+
+print "---------------Read Mapping Finished---------------"
+
 # STEP 3 convert to .bam & .bam.bai files with samtools
 for file in os.listdir("02-bowtie2-sam/%s"%type):
      id = file.split(".")[0]
