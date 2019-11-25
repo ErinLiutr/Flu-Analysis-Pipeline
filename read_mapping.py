@@ -44,19 +44,6 @@ build_name = type[-1].lower() + "_build"
 os.system("bowtie2-build %s %s"%(reference, build_name))
 os.system("mv %s* references"%build_name)
 
-# for id in os.listdir(readsA):
-#     print "---------------Current id: %s---------------"%id
-#     for file in os.listdir(readsA + "/" + id):
-#         if "R1" in file:
-#             read1 = readsA + "/" + id + "/" + file
-#         if "R2" in file:
-#             read2 = readsA + "/" + id + "/" + file
-#
-#     output = "02-bowtie2-sam/UpperA/%s"%id
-#
-#     print "read 1: %s \nread 2: %s\noutput: %s\n"%(read1, read2, output)
-#     os.system("bowtie2 -x references/a_build --quiet -1 %s -2 %s -S %s.sam"%(read1, read2, output))
-
 for id in os.listdir(reads):
     print "---------------Current id: %s---------------"%id
     for file in os.listdir(reads + "/" + id):
@@ -67,17 +54,19 @@ for id in os.listdir(reads):
 
     output = "02-bowtie2-sam/%s/%s"%(type, id)
 
-    print "read 1: %s \nread 2: %s\noutput: %s\n"%(read1, read2, output)
+    print "bowtie2 -x references/%s --quiet -1 %s -2 %s -S %s.sam"%(build_name, read1, read2, output)
     os.system("bowtie2 -x references/%s --quiet -1 %s -2 %s -S %s.sam"%(build_name, read1, read2, output))
+
 
 print "---------------Read Mapping Finished---------------"
 
 # STEP 3 convert to .bam & .bam.bai files with samtools
 for file in os.listdir("02-bowtie2-sam/%s"%type):
      id = file.split(".")[0]
-     print id
+     print "samtools view -Sb 02-bowtie2-sam/%s/%s > 03-bam/%s/%s.bam"%(type, file, type, id)
      os.system("samtools view -Sb 02-bowtie2-sam/%s/%s > 03-bam/%s/%s.bam"%(type, file, type, id))
 
+     print "samtools sort 03-bam/%s/%s.bam -o 04-sorted-bam/%s/%s.sorted.bam"%(type, id, type, id)
      os.system("samtools sort 03-bam/%s/%s.bam -o 04-sorted-bam/%s/%s.sorted.bam"%(type, id, type, id))
 
 print "---------------Conversion to Bam Files Finished---------------"
@@ -100,13 +89,15 @@ for idx, row in df.iterrows():
 for name, ids in samples.items():
     for id in ids:
         merged = str(id[0]) + "-" + str(id[1])
+        print "samtools merge 05-merged-bam/%s/%s-merged.bam 04-sorted-bam/%s/%s.sorted.bam 04-sorted-bam/%s/%s.sorted.bam"%(type, merged, type, id[0], type, id[1])
+
         os.system("samtools merge 05-merged-bam/%s/%s-merged.bam 04-sorted-bam/%s/%s.sorted.bam 04-sorted-bam/%s/%s.sorted.bam"
                   %(type, merged, type, id[0], type, id[1]))
 
 for file in os.listdir("05-merged-bam/%s"%type):
     id = file.split(".bam")[0]
     print "samtools index 05-merged-bam/%s/%s.bam"%(type, id)
-    os.system("s 05-merged-bam/%s/%s.bam"%(type, id))
+    os.system("samtools index 05-merged-bam/%s/%s.bam"%(type, id))
 
 print "---------------Merge Bam Files finished---------------"
 
@@ -117,6 +108,7 @@ os.system("lofreq faidx %s"%reference)
 for file in os.listdir("05-merged-bam/%s"%type):
     if file.endswith("bam"):
         id = file.split(".")[0]
+        print "lofreq call-parallel --pp-threads 2 -f %s -o 06-vcf/%s/%s.vcf 05-merged-bam/%s/%s"%(reference, type, id, type, file)
         os.system("lofreq call-parallel --pp-threads 2 -f %s -o 06-vcf/%s/%s.vcf 05-merged-bam/%s/%s"%(reference, type, id, type, file))
 
 print "---------------Variant Calling Finished---------------"
@@ -124,8 +116,9 @@ print "---------------Variant Calling Finished---------------"
 # STEP 6 Get the coverage information (write into .coverage files)
 for file in os.listdir("05-merged-bam/%s"%type):
     if file.endswith("bam"):
-        print file
+
         id = file.split(".")[0]
+        print "samtools mpileup 05-merged-bam/%s/%s -o 07-coverage/%s/%s.coverage"%(type, file, type, id)
         os.system("samtools mpileup 05-merged-bam/%s/%s -o 07-coverage/%s/%s.coverage"%(type, file, type, id))
 
 print "---------------Generating .coverage Files Finished---------------"

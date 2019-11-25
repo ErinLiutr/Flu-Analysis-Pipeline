@@ -9,10 +9,6 @@
 
 import sys
 import pandas as pd
-id = sys.argv[1]
-metadata = sys.argv[2]
-type = sys.argv[3]
-reference = sys.argv[4]
 
 # match blinded sample number with subject & sample position
 # Usage note!!
@@ -21,17 +17,17 @@ reference = sys.argv[4]
 # sample group with column name: "Sample Group"
 # subject with column name: "Subject"
 # sample position with column name: "Sample Type"
+#
+# def creat_dict():
+#     df = pd.read_csv("%s.csv"%metadata)
+#     names = df.set_index('ID').T.to_dict()
+#     dict = {}
+#     for key, val in names.items():
+#         dict[key] = [str(val["Subject"]), str(val["Sample Group"]), val["Sample Type"]]
+#
+#     return dict
 
-def creat_dict():
-    df = pd.read_csv("%s"%metadata)
-    names = df.set_index('ID').T.to_dict()
-    dict = {}
-    for key, val in names.items():
-        dict[key] = [str(val["Subject"]), str(val["Sample Group"]), val["Sample Type"]]
-
-    return dict
-
-creat_dict()
+# creat_dict()
 
 ## read .fasta reference files into a dictionary
 ## key: segment information
@@ -40,7 +36,7 @@ creat_dict()
 def create_ref(id):
     ref = {}
 
-    f = open(reference, "r")
+    f = open("refA.fasta", "r")
 
     f1 = f.read()
     segments = f1.split(">")
@@ -88,7 +84,7 @@ def check_counts(ref):
 def coverage(id):
     # return the reference dictionary without the variance
 
-    file = "07-coverage/%s/%s-merged.coverage"%(type, id)
+    file = "%s-merged.coverage"%(id)
 
     f = open(file, "r")
     lines = f.readlines()
@@ -107,7 +103,7 @@ def coverage(id):
             segments[split[0]].append((split[1], split[3]))
 
     ref = create_ref(id)
-
+    #print segments
     ## if segment missing in the coverage file, assembled sequences
     ## only have N's
 
@@ -121,7 +117,7 @@ def coverage(id):
                 new_seg += 'N'
             ref[segment][1] = new_seg
 
-
+    #print ref
     for segment in segments.keys():
 
         ## sequences of reference segment
@@ -135,6 +131,7 @@ def coverage(id):
         new_list = list(new_seg)
 
         for pair in segments[segment]:
+            print pair
             if int(pair[1]) > 1:
                 new_list[int(pair[0])-1] = ref_list[int(pair[0])-1]
 
@@ -146,6 +143,7 @@ def coverage(id):
     else:
         return {}
 
+coverage("20206-20244")
 
 def summarize(file):
     summary = {}
@@ -156,11 +154,10 @@ def summarize(file):
             info = line.split()
             chromosome = info[0]
             if chromosome in summary:
-                # take POS & ALT in .vcf files!!
-                summary[chromosome].append((info[1], info[4]))
+                summary[chromosome].append((info[1], info[3]))
             else:
                 summary[chromosome] = []
-                summary[chromosome].append((info[1], info[4]))
+                summary[chromosome].append((info[1], info[3]))
     return (summary)
 
 def fasta(id):
@@ -177,11 +174,11 @@ def fasta(id):
     else:
         new_name = id
 
-    vcf = "06-vcf/%s"%type + id + "-merged.vcf"
+    vcf = id + "-merged.vcf"
 
     summary = summarize(vcf)
 
-    name = "08-fasta/%s"%type + new_name + ".fasta"
+    name = new_name + ".fasta"
 
     fasta = open(name,"w+")
 
@@ -194,12 +191,9 @@ def fasta(id):
             sequence = list(ref[segment][1])
             for update in summary[segment]:
                 index = int(update[0])
-                # .vcf files start indexing from 1!!
-                # minus one to account for this difference
-                sequence[index-1] = update[1]
+                sequence[index] = update[1]
             string = ''.join(sequence)
-            header = ref[segment][0].replace(":"," ")
-            fasta.write(header)
+            fasta.write(ref[segment][0])
             fasta.write("\n")
             fasta.write(string)
             fasta.write("\n")
@@ -209,6 +203,4 @@ def fasta(id):
             fasta.write(ref[segment][1])
             fasta.write("\n")
 
-
-if __name__== "__main__":
-    fasta(id)
+#fasta("20206-20244")
