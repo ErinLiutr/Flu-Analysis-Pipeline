@@ -182,6 +182,9 @@ def fasta(id):
     summary = summarize(vcf)
 
     name = "08-fasta/%s"%type + new_name + ".fasta"
+    
+    if " " in name:
+        name.replace(" ", "_")
 
     fasta = open(name,"w+")
 
