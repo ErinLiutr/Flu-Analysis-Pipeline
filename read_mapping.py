@@ -22,54 +22,54 @@ m1 = sys.argv[4]
 m2 = sys.argv[5]
 #metadataA = "metadataA.csv"
 #metadataB = "metadataB.csv"
-
-
-
-print "---------------Read Mapping Starting for %s %s---------------"%(reads, type)
-
-# Setting up working directories
-dirs = ["references","01-trimmomatic", "02-bowtie2-sam", "03-bam", "04-sorted-bam", "05-merged-bam", "06-vcf", "07-coverage", "08-fasta"]
-
-for d in dirs:
-    if not os.path.exists(d):
-        os.mkdir(d)
-
-print "---------------Directories all set!---------------"
-
-# STEP 1 clean up reads with Trimmomatic
-
-# STEP 2 read mapping with bowtie2
-# build reference
-build_name = type[-1].lower() + "_build"
-os.system("bowtie2-build %s %s"%(reference, build_name))
-os.system("mv %s* references"%build_name)
-
-for id in os.listdir(reads):
-    print "---------------Current id: %s---------------"%id
-    for file in os.listdir(reads + "/" + id):
-        if "R1" in file:
-            read1 = reads + "/" + id + "/" + file
-        if "R2" in file:
-            read2 = reads + "/" + id + "/" + file
-
-    output = "02-bowtie2-sam/%s/%s"%(type, id)
-
-    print "bowtie2 -x references/%s --quiet -1 %s -2 %s -S %s.sam"%(build_name, read1, read2, output)
-    os.system("bowtie2 -x references/%s --quiet -1 %s -2 %s -S %s.sam"%(build_name, read1, read2, output))
-
-
-print "---------------Read Mapping Finished---------------"
-
-# STEP 3 convert to .bam & .bam.bai files with samtools
-for file in os.listdir("02-bowtie2-sam/%s"%type):
-     id = file.split(".")[0]
-     print "samtools view -Sb 02-bowtie2-sam/%s/%s > 03-bam/%s/%s.bam"%(type, file, type, id)
-     os.system("samtools view -Sb 02-bowtie2-sam/%s/%s > 03-bam/%s/%s.bam"%(type, file, type, id))
-
-     print "samtools sort 03-bam/%s/%s.bam -o 04-sorted-bam/%s/%s.sorted.bam"%(type, id, type, id)
-     os.system("samtools sort 03-bam/%s/%s.bam -o 04-sorted-bam/%s/%s.sorted.bam"%(type, id, type, id))
-
-print "---------------Conversion to Bam Files Finished---------------"
+#
+#
+#
+# print "---------------Read Mapping Starting for %s %s---------------"%(reads, type)
+#
+# # Setting up working directories
+# dirs = ["references","01-trimmomatic", "02-bowtie2-sam", "03-bam", "04-sorted-bam", "05-merged-bam", "06-vcf", "07-coverage", "08-fasta"]
+#
+# for d in dirs:
+#     if not os.path.exists(d):
+#         os.mkdir(d)
+#
+# print "---------------Directories all set!---------------"
+#
+# # STEP 1 clean up reads with Trimmomatic
+#
+# # STEP 2 read mapping with bowtie2
+# # build reference
+# build_name = type[-1].lower() + "_build"
+# os.system("bowtie2-build %s %s"%(reference, build_name))
+# os.system("mv %s* references"%build_name)
+#
+# for id in os.listdir(reads):
+#     print "---------------Current id: %s---------------"%id
+#     for file in os.listdir(reads + "/" + id):
+#         if "R1" in file:
+#             read1 = reads + "/" + id + "/" + file
+#         if "R2" in file:
+#             read2 = reads + "/" + id + "/" + file
+#
+#     output = "02-bowtie2-sam/%s/%s"%(type, id)
+#
+#     print "bowtie2 -x references/%s --quiet -1 %s -2 %s -S %s.sam"%(build_name, read1, read2, output)
+#     os.system("bowtie2 -x references/%s --quiet -1 %s -2 %s -S %s.sam"%(build_name, read1, read2, output))
+#
+#
+# print "---------------Read Mapping Finished---------------"
+#
+# # STEP 3 convert to .bam & .bam.bai files with samtools
+# for file in os.listdir("02-bowtie2-sam/%s"%type):
+#      id = file.split(".")[0]
+#      print "samtools view -Sb 02-bowtie2-sam/%s/%s > 03-bam/%s/%s.bam"%(type, file, type, id)
+#      os.system("samtools view -Sb 02-bowtie2-sam/%s/%s > 03-bam/%s/%s.bam"%(type, file, type, id))
+#
+#      print "samtools sort 03-bam/%s/%s.bam -o 04-sorted-bam/%s/%s.sorted.bam"%(type, id, type, id)
+#      os.system("samtools sort 03-bam/%s/%s.bam -o 04-sorted-bam/%s/%s.sorted.bam"%(type, id, type, id))
+#
+# print "---------------Conversion to Bam Files Finished---------------"
 
 # STEP 4 merge the reads from same subject
 
