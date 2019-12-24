@@ -65,8 +65,6 @@ For pairing up the two sequencing results for each  specimen replicate
 Prometheus:
 - fluA.csv
 - fluB.csv
-EMIT:
-- NA
 
 3. metadata file type 2:
 For pairing up samples with subject ID
@@ -74,5 +72,6 @@ For pairing up samples with subject ID
 Prometheus:
 - metadataA.csv
 - metadataB.csv
+
 EMIT:
 - metadataEMIT.csv
