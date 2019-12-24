@@ -24,7 +24,6 @@ USAGE NOTE:
 - Parsnp
 3. Reference genome sequences
 """
-
 import os
 import sys
 
