@@ -4,7 +4,8 @@ import pandas as pd
 import numpy as np
 import csv
 
-path = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/vcf/"
+#path = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/UpperB/vcf/"
+path = "/Users/liutianrui/Desktop/vcf/"
 output_path = "/Users/liutianrui/Desktop/"
 map = {1: "PB2", 2: "PB1", 3:"PA", 4: "HA", 5:"NP", 6:"NA", 7:"MP", 8:"NS"}
 ## getting a list of list
@@ -46,7 +47,7 @@ def read_file(filename):
     low_freq_pos = []
     for num in range(len(chrome)):
         for idx in range(len(alternate_nt[num])):
-            if allel_freq[num][idx] < 0.5 and allel_freq[num][idx] > 0.02:
+            if allel_freq[num][idx] < 0.5 and allel_freq[num][idx] > 0.05:
                 low_freq_pos.append(num)
 
     ## sort low frequence variant positions based on Allel frequency (smallest first!)
@@ -62,11 +63,25 @@ def read_file(filename):
 
     ## indexing in low_freq_pos starts from 0!
     ## initial setting for the output
+
+    #sample_map = {"MH584291": 1, "MH584292": 2, "MH584290":3, "MH584289":4, "MH584288":5, "MH584287":6, "MH584286":7, "MH584285":8}
+    #sample_map = {"CY260950": 1, "CY260951": 2, "CY260952": 3, "CY260953": 4, "CY260954": 5, "CY260955": 6,
+                  #"CY260956": 7, "CY260957": 8}
+
+
+    sample_map = {"NC_007373": 1, "NC_007372": 2, "NC_007371":3, "NC_007366":4, "NC_007369":5, "NC_007368":6, "NC_007367":7, "NC_007370":8}
+
     result = {"Percentage": percentage, "Position":[], "Frequency":[], "Nts":[]}
     for pos in low_freq_pos:
-        start = chrome[pos].index("CY")
-        chrome_name = chrome[pos][start:start+8]
-        segment_num = int(chrome_name[-1]) + 1
+        #start = chrome[pos].index("MH")
+        #start = chrome[pos].index("CY")
+        start = chrome[pos].index("NC")
+
+        #chrome_name = chrome[pos][start:start+8]
+
+        chrome_name = chrome[pos][start:start + 9]
+        segment_num = sample_map[chrome_name]
+
         position_name = "Segment " + str(segment_num) + " " + map[segment_num] + " " + str(position[pos])
         result["Position"].append(position_name)
         result["Frequency"].append(allel_freq[pos])
@@ -80,10 +95,14 @@ def convertFileName(metadata, filename):
     names = df.set_index('ID').T.to_dict()
     dict = {}
     for key, val in names.items():
-        dict[key] = [str(val["Subject"]), str(val["Sample Group"]), val["Sample Type"]]
+
+        #dict[key] = [str(val["Subject"]), str(val["Sample Group"]), val["Sample Type"]]
+        new_key = key.split("_")[-1]
+        dict[new_key] = [str(val["Subject"]), str(val["Sample Group"]), val["Sample Type"]]
 
     for key in dict.keys():
         if isinstance(key, str) and key in filename:
+            print "t"
             return " ".join(reversed(dict[key]))
 
     return ""
@@ -109,7 +128,8 @@ def getSummaryCSV(metadata, path):
             else:
                 column.append("")
         summary[subject_info] = column
-
+        #print subject_info, column
+    #print summary
     df = pd.DataFrame(data=summary)
     df.to_csv(output_path + "Low Frequency Variants.csv")
 
@@ -135,5 +155,5 @@ def getComparison(metadata, path):
     df = pd.DataFrame(data=comparison)
     df.to_csv(output_path + "Low Frequency Variants Comparison.csv")
 
-getSummaryCSV("/Users/liutianrui/Desktop/metadataA.csv", path)
-getComparison("/Users/liutianrui/Desktop/metadataA.csv", path)
+getSummaryCSV("/Users/liutianrui/Desktop/metadataEMIT.csv", path)
+getComparison("/Users/liutianrui/Desktop/metadataEMIT.csv", path)

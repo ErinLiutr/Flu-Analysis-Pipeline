@@ -1,181 +1,120 @@
+"""
+This is the script for the analysis pipeline
+Part 1: Reference guided genome assembly
+Part 2: Classification: reformatting FASTA files
+Part 3: Recombination Signal Check
+Part 4: Variant analysis
+Part 5: Phylogenetic analysis
+Part 6: Transmission analysis
+
+NOTE:
+1. currently Part1 hasn't been adapted for EMIT
+2. hasn't integrated BEAST2 tree generation
+3. hasn't integrated part 6 properly
+
+USAGE NOTE:
+1. Put all input files under the same directory of this script
+2. softwares used in the pipeline (need to be installed beforehand)
+- Bowtie2
+- Samtools
+- Lofreq
+- RAxML
+- Parsnp
+"""
+
 import os
-import dendropy
-import numpy
-import seaborn
-from matplotlib import pyplot as plt
-from dendropy.calculate import treecompare
+import sys
+
+"""
+Input to run the pipeline (all strings):
+1. The type of the reads (eg. In Prometheus we have UpperA and UpperB)
+2. Reference genome filename
+    - For Prometheus we used A_Maryland_90_2017.fasta and B_DOC_03_2018.fasta
+3. The directory of the reads
+4. Metadata file 1 filename
+5. Metadata file 2 filename
+
+Note: 
+- Metadata file 1 is for pairing up the two sequencing results for each 
+specimen replicate (example file: fluA.csv and fluB.csv) 
+- Metadata file 2 is for for pairing up samples with subject ID
+(example file: metadataA.csv and metadataB.csv)
+"""
+
+type = sys.argv[1]
+reference = sys.argv[2]
+reads = sys.argv[3]
+m1 = sys.argv[4]
+m2 = sys.argv[5]
 
 
-## Step 1 read mapping
-## run read_mapping.py
+"""
+Part 1: Reference guided genome assembly
+Run read_mapping.py 
+
+Input: the 5 inputs of this pipeline
+
+Output: it'll create 9 directories
+references: reference build files for Bowtie2
+01-trimmomatic: NA
+02-bowtie2-sam: output of Bowtie2 (sam files)
+03-bam: bam files (samtools view -Sb)
+04-sorted-bam: sorted bam files (samtools sort)
+05-merged-bam: merged bam files (samtools merge)
+06-vcf: vcf files (lofreq)
+07-coverage: coverage files (samtools mpileup)
+08-fasta: fasta.py
+"""
+
+## run assembly script
+os.system("python assembly.py %s %s %s %s"% (type, reference, reads, m1, m2))
+
+
+"""
+Part 2: Classifying .fasta files into 8 segments
+For building phylogenetic trees on segments
+
+Input:
+
+Output:
+"""
 
 
 
-## Step 2 classify .fasta files into 8 segments
-input_path = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/UpperB/"
-output_path = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/fragments/"
-concate_output_path =  "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/"
-reference_path = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/reference/"
 
-map = {1: "PB2", 2: "PB1", 3:"PA", 4: "HA", 5:"NP", 6:"NA", 7:"MP", 8:"NS"}
-# segments = {}
-#
-# for file in os.listdir(input_path):
-#     name = file.split(".fasta")[0]
-#     lines = ""
-#     with open(input_path + file, "r") as f:
-#         for line in f.readlines():
-#             lines += line.replace("\n","")
-#
-#         f.close()
-#
-#     entries = lines.split(">")
-#     if "" in entries:
-#         entries.remove("")
-#
-#     for seg in entries:
-#         s = seg.split("segment ")
-#         seg_num = int (s[1][0])
-#         sequence = s[1][1:]
-#         id = s[0]
-#         newID = id.split()[-1]
-#         id = " ".join(id.split()[:-1])
-#         header = ">" + name + " " + newID + " " + id + "\n" + sequence
-#         if seg_num in segments.keys():
-#             segments[seg_num].append(header)
-#         else:
-#             segments[seg_num] = [header]
-#
-# ## add reference segments
-# ref_file = reference_path + "/B_ref.fasta"
-# with open(ref_file, "r") as f:
-#     entries = f.readlines()
-# f.close()
-#
-# new_entries = []
-# lines = ""
-# for line in entries:
-#     if line[0] == ">":
-#         if lines != "":
-#             new_entries.append(lines+"\n")
-#         header = ">" + "reference " + line.split(">")[1]
-#         new_entries.append(header)
-#         lines = ""
-#     else:
-#         nl = line.replace("\n","")
-#         lines += nl
-# new_entries.append(lines)
-# #print new_entries
-# for idx in range(0, len(new_entries), 2):
-#     segments[idx/2 + 1].append(new_entries[idx] + new_entries[idx+1])
-#
-#
-# os.mkdir(output_path)
-# ## write into files
-# for num in range(1, 9):
-#     segment = map[num]
-#     with open(output_path + "/%s.fasta"%segment, "wb") as f:
-#         for lines in segments[num]:
-#             f.write(lines + "\n")
-#     f.close()
+"""
+Part 3: Recombination signal check
+
+Input:
+
+Output:
+"""
 
 
-# classify fragments
-input_path2 = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/fragments"
-output_path2 = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/separate_frags"
-os.mkdir(output_path2)
-for file in os.listdir(input_path2):
-    id = file.split(".fasta")[0]
-    if len(id) in [2,3]:
-        os.mkdir(output_path2 + "/" + id)
-        with open(input_path2 + "/" + file, "r") as f:
-            entries = f.readlines()
 
-        if "\n" in entries:
-            entries.remove("\n")
-        for idx in range(0, len(entries), 2):
-            filename = entries[idx].split(" ")[0].replace(">","") + ".fasta"
-            with open(output_path2 + "/" + id + "/%s"%filename, "wb") as f2:
-                f2.write(entries[idx])
-                f2.write(entries[idx+1])
-                f2.close()
-        f.close()
-    else:
-        os.mkdir(output_path2 + "/" + "reference")
-        with open(input_path2 + "/" + file, "r") as f:
-            entries = f.readlines()
-        new_entries = []
-        lines = ""
-        for line in entries:
-            if line[0] == ">":
-                if lines != "":
-                    new_entries.append(lines+"\n")
-                new_entries.append(line)
-                lines = ""
-            else:
-                nl = line.replace("\n","")
-                lines += nl
-        new_entries.append(lines)
-        for idx in range(0, len(new_entries), 2):
-            filename = "reference_" + map[idx/2 + 1] + ".fasta"
-            with open(output_path2 + "/" + "reference" + "/%s"%filename, "wb") as f2:
-                f2.write(new_entries[idx])
-                f2.write(new_entries[idx+1])
-                f2.close()
-        f.close()
+"""
+Part 4: Variant analysis
 
-## genrate the concatenated.fasta file
-# lines = []
-#
-# for file in os.listdir(input_path):
-#     with open(input_path + file, "r") as f:
-#         read_lines = f.readlines()
-#         subject_info = file.split(".fasta")[0]
-#         id = read_lines[0].split(" ")[-3]
-#         lines.append("\n" + ">" + subject_info + " " + id + "\n")
-#         for l in read_lines:
-#             if not l[0] == ">":
-#                 lines.append(l.replace("\n",""))
-#     f.close()
-#
-# ## write the reference genome (Optional)
-# lines.append("\n>reference B/District Of Columbia/03/2018\n")
-# with open(reference_path + "B_ref.fasta") as f:
-#     for line in f.readlines():
-#         if not line[0] == ">":
-#             lines.append(line.replace("\n",""))
-#
-# with open(concate_output_path + "concatenated.fasta", "wb") as f:
-#     for idx in range(len(lines)):
-#         if idx == 0:
-#             f.write(lines[idx][1:])
-#         else:
-#             f.write(lines[idx])
-#     f.close()
+Input:
 
-## Step 3 Phylogenetic analysis
-## run analysis.py
+Output:
+"""
 
-## Visualize all the phylogenetic trees
 
-# def treeImage(self, newick, rooted=False, outgroup=False):
-#     """
-#         Given a newick string, creates an image of the tree.
-#         Used in L Statistic GUI.
-#     """
-#     plt.figure(figsize=(8, 4))
-#     plt.axis('off')
-#     ax = plt.subplot(1, 1, 1)
-#     ax.axis('off')
-#
-#     # Create the tree object
-#     tree = Phylo.read(newick, "newick")
-#     tree.rooted = rooted
-#
-#     if rooted:
-#         tree.root_with_outgroup(outgroup)
-#
-#     # Create the tree image
-#     Phylo.draw(tree, axes=ax, do_show=False)
-#     plt.savefig('test.png')
+"""
+Part 5: Phylogenetic tree analysis
+
+Input:
+
+Output:
+"""
+
+
+"""
+Part 6: Transmission tree analysis
+
+Input:
+
+Output:
+"""
 

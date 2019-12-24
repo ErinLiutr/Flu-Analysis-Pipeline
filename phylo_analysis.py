@@ -122,3 +122,5 @@ os.system("parsnp -v -x -c -r reference/B_ref.fasta -d UpperB -C 1000 -o parsnp_
 
 
 
+
+

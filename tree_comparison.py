@@ -3,6 +3,8 @@ from dendropy.calculate import treecompare
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib
+import os
+
 def heatmap(data, row_labels, col_labels, ax=None,
             cbar_kw={}, cbarlabel="", **kwargs):
     """
@@ -123,66 +125,82 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
     return texts
 
 
-map = {1: "PB2", 2: "PB1", 3:"PA", 4: "HA", 5:"NP", 6:"NA", 7:"MP", 8:"NS", 9:"Concatenated"}
-parsnp = ["Parsnp PB1", "Parsnp PB2", "Parsnp PA", "Parsnp HA", "Parsnp NP", "Parsnp NA", "Parsnp MP", "Parsnp NS", "Parsnp Concatenated"]
-raxml = ["RAxML PB1", "RAxML PB2", "RAxML PA", "RAxML HA", "RAxML NP", "RAxML NA", "RAxML MP", "RAxML NS", "RAxML Concatenated"]
-beast = ["Beast PB1", "Beast PB2", "Beast PA", "Beast HA", "Beast NP", "Beast NA", "Beast MP", "Beast NS", "Beast Concatenated"]
-wRF = []
-uwRF = []
-eD = []
-## convert parsnp output to newick
+def get_figure(software1, software2, title, filename):
+
+    map = {1: "PB2", 2: "PB1", 3: "PA", 4: "HA", 5: "NP", 6: "NA", 7: "MP", 8: "NS", 9: "Concatenated"}
+    parsnp = ["Parsnp PB1", "Parsnp PB2", "Parsnp PA", "Parsnp HA", "Parsnp NP", "Parsnp NA", "Parsnp MP", "Parsnp NS",
+              "Parsnp Concatenated"]
+    raxml = ["RAxML PB1", "RAxML PB2", "RAxML PA", "RAxML HA", "RAxML NP", "RAxML NA", "RAxML MP", "RAxML NS",
+             "RAxML Concatenated"]
+    beast = ["Beast PB1", "Beast PB2", "Beast PA", "Beast HA", "Beast NP", "Beast NA", "Beast MP", "Beast NS",
+             "Beast Concatenated"]
+    wRF = []
+    uwRF = []
+    eD = []
 
 
-## prepare data
-for num1 in range(1,10):
-    w = []
-    u = []
-    e = []
-    for num2 in range(1, 10):
-        ## segment1: parsnp
-        ## segment2: raxml
-        segment1 = map[num1]
-        segment2 = map[num2]
+    ## prepare data
+    for num1 in range(1,10):
+        w = []
+        u = []
+        e = []
+        for num2 in range(1, 10):
+            ## segment1: parsnp
+            ## segment2: raxml
+            segment1 = map[num1]
+            segment2 = map[num2]
 
-        # groundTruthFile = "/Users/liutianrui/Library/Application Support/Autodesk/Autodesk Sync/Autodesk 360/Reanalysis_of_EMIT/analysis/parsnp_output/%s/parsnp.tree"%segment1
-        # estimationFile = "/Users/liutianrui/Library/Application Support/Autodesk/Autodesk Sync/Autodesk 360/Reanalysis_of_EMIT/analysis/parsnp_output/%s/parsnp.tree"%segment2
+            if software1 == "parsnp":
+                groundTruthFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/UpperB/parsnp_output/%s/parsnp.tree" % segment1
+            if software1 == "raxml":
+                groundTruthFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/UpperB/raxml_output/bootstrapping/RAxML_bestTree.%sT1.nexus" % segment1
+            if software1 == "beast":
+                groundTruthFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/UpperB/beast/%s/%s_beast" % (segment1, segment1)
 
-        groundTruthFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/parsnp_output/%s/parsnp.tree"%segment1
-        estimationFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/parsnp_output/%s/parsnp.tree" % segment2
-        #estimationFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/raxml_output/bootstrapping/RAxML_bestTree.%sT1.nexus"%segment2
-        #estimationFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/beast/%s/%s_beast"%(segment2, segment2)
-        #groundTruthFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/beast/%s/%s_beast"%(segment1, segment1)
-        #estimationFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/raxml_output/bootstrapping/RAxML_bestTree.%sT1.nexus"%segment2
-        tns = dendropy.TaxonNamespace()
-        gtTree = dendropy.Tree.get(file=open(groundTruthFile, 'r'), schema='newick', taxon_namespace=tns)
-        estimateTree = dendropy.Tree.get(file=open(estimationFile, 'r'), schema='newick', taxon_namespace=tns)
 
-        # # metrics, weighted RF is unsymmetric, unweighted RF is symmetric distance
-        weightedRF = treecompare.weighted_robinson_foulds_distance(gtTree, estimateTree)
-        unweightedRF = treecompare.unweighted_robinson_foulds_distance(gtTree, estimateTree)
-        euclideanDist = treecompare.euclidean_distance(gtTree, estimateTree)
-        w.append(weightedRF)
-        u.append(unweightedRF)
-        e.append(euclideanDist)
+            if software2 == "parsnp":
+                estimationFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/UpperB/parsnp_output/%s/parsnp.tree" % segment2
+            if software2 == "raxml":
+                estimationFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/UpperB/raxml_output/bootstrapping/RAxML_bestTree.%sT1.nexus" % segment2
+            if software2 == "beast":
+                estimationFile = "/Users/liutianrui/Desktop/lab/flu_transmission/data/prometheus/UpperB/beast/%s/%s_beast" % (segment2, segment2)
 
-    wRF.append(w)
-    uwRF.append(u)
-    eD.append(e)
 
-wRF = np.array(wRF)
-uwRF = np.array(uwRF)
-eD = np.array(eD)
+            # groundTruthFile = "/Users/liutianrui/Library/Application Support/Autodesk/Autodesk Sync/Autodesk 360/Reanalysis_of_EMIT/analysis/parsnp_output/%s/parsnp.tree"%segment1
+            # estimationFile = "/Users/liutianrui/Library/Application Support/Autodesk/Autodesk Sync/Autodesk 360/Reanalysis_of_EMIT/analysis/parsnp_output/%s/parsnp.tree"%segment2
 
-fig, ax = plt.subplots()
 
-im, cbar = heatmap(uwRF, parsnp, parsnp, ax=ax,
-                   cmap="YlGn", cbarlabel="Distance")
+            tns = dendropy.TaxonNamespace()
+            gtTree = dendropy.Tree.get(file=open(groundTruthFile, 'r'), schema='newick', taxon_namespace=tns)
+            estimateTree = dendropy.Tree.get(file=open(estimationFile, 'r'), schema='newick', taxon_namespace=tns)
 
-texts = annotate_heatmap(im, valfmt="{x:.2f}")
+            # # metrics, weighted RF is unsymmetric, unweighted RF is symmetric distance
+            weightedRF = treecompare.weighted_robinson_foulds_distance(gtTree, estimateTree)
+            unweightedRF = treecompare.unweighted_robinson_foulds_distance(gtTree, estimateTree)
+            euclideanDist = treecompare.euclidean_distance(gtTree, estimateTree)
+            w.append(weightedRF)
+            u.append(unweightedRF)
+            e.append(euclideanDist)
 
-ax.set_title("Unweighted Robinson Foulds on Parsnp Trees", pad = -330)
+        wRF.append(w)
+        uwRF.append(u)
+        eD.append(e)
 
-#ax.set_title("Euclidean Distance on Beast and RAxML Trees", pad = -330)
+    wRF = np.array(wRF)
+    uwRF = np.array(uwRF)
+    eD = np.array(eD)
 
-fig.tight_layout()
-plt.show()
+    fig, ax = plt.subplots()
+
+    im, cbar = heatmap(uwRF, beast, beast, ax=ax,
+                       cmap="YlGn", cbarlabel="Distance")
+
+    texts = annotate_heatmap(im, valfmt="{x:.2f}")
+    ax.set_title(title, pad = -330)
+    ax.set_title("Unweighted Robinson Foulds on BEAST Trees", pad = -330)
+
+    fig.tight_layout()
+    plt.show()
+
+
+get_figure("beast", "beast","","")

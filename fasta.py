@@ -1,14 +1,6 @@
-# two args: sample id (string!), metadata file name(string!), Influenza virus type (string!),
-# each sample has variance, reference, and coverage
-# first go through coverage and see what needs to be placed in the fasta
-# originally just use reference for placing, but n where no coverage
-# next go through vcf and place the variants!
-
-# check indexing!!
-
-
 import sys
 import pandas as pd
+
 id = sys.argv[1]
 metadata = sys.argv[2]
 type = sys.argv[3]
@@ -19,8 +11,8 @@ reference = sys.argv[4]
 # metadata should be in .csv format, with name "metadata.csv"
 # sample number with column name: "ID"
 # sample group with column name: "Sample Group"
-# subject with column name: "Subject"
-# sample position with column name: "Sample Type"
+# subject ID with column name: "Subject"
+# sampling position with column name: "Sample Type"
 
 def creat_dict():
     df = pd.read_csv("%s"%metadata)
@@ -87,7 +79,6 @@ def check_counts(ref):
 
 def coverage(id):
     # return the reference dictionary without the variance
-
     file = "07-coverage/%s/%s-merged.coverage"%(type, id)
 
     f = open(file, "r")
@@ -112,6 +103,7 @@ def coverage(id):
     ## only have N's
 
     for segment in ref.keys():
+        ## the string used here (|Organism:Influenza) is specific to the .coverage files
         check = segment + "|Organism:Influenza"
 
         if check not in segments.keys():
@@ -152,6 +144,7 @@ def summarize(file):
     f = open(file, "r")
     f1 = f.readlines()
     for line in f1:
+        ## the string used here (gb) is specific to the .coverage files
         if line[0:3] == "gb:":
             info = line.split()
             chromosome = info[0]
