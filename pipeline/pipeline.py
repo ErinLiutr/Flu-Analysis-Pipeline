@@ -39,7 +39,7 @@ Input to run the pipeline (all strings):
 Note: 
 - Metadata file type1 is for pairing up the two sequencing results for each 
 specimen replicate (example file: fluA.csv and fluB.csv) 
-- Metadata file type2 is for for pairing up samples with subject ID
+- Metadata file type2 is for pairing up samples with subject ID
 (example file: metadataA.csv and metadataB.csv)
 """
 
@@ -130,7 +130,7 @@ Input:
 0 and 1). The first is the lower bound and the second the upper bound
 to be identified as a low frequency variants
 
-Output: it'll create a directory called variant analysis that 
+Output: it'll create a directory called variant_analysis that 
 stores two csv files
 1. Low Frequency Variants.csv:
 This sheet contains all the low frequency variants found within the threshold.
