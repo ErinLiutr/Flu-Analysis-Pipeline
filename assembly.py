@@ -1,4 +1,28 @@
 # -*- coding: utf-8 -*-
+
+"""
+This is the script for reference guided genome assembly
+
+Input (all strings):
+1. type: The type of the reads (eg. In Prometheus we have UpperA and UpperB)
+2. reference: Reference genome filename
+    - For Prometheus we used A_Maryland_90_2017.fasta and B_DOC_03_2018.fasta
+3. reads: The directory of the reads
+4. m1: Metadata file type1 filename
+5. m2: Metadata file type2 filename
+
+Output: it'll create 9 directories
+references: reference build files for Bowtie2
+01-trimmomatic: NA
+02-bowtie2-sam: output of Bowtie2 (sam files)
+03-bam: bam files (samtools view -Sb)
+04-sorted-bam: sorted bam files (samtools sort)
+05-merged-bam: merged bam files (samtools merge)
+06-vcf: vcf files (lofreq)
+07-coverage: coverage files (samtools mpileup)
+08-fasta: fasta.py
+"""
+
 import os
 import sys
 import pandas as pd

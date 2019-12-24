@@ -2,11 +2,29 @@
 This is the script for phylogenetic analysis
 
 Input:
-
+1. threads: the number of threads to be used for reconstructing phylogenetic trees
+2. reference_path: path to the reference genome
+3. fasta_path: path to the sample sequences (fasta files)
 What it does:
 
-Part 1:
+Part 1: Multiple sequence alignment
+Create two directories:
+    -fragments_aligned: 8 fasta files for segment alignment results
+    -full_aligned: fasta file for concatenated sequence alignment result
+
+Part 2: Building phylogenetic trees with RAxML
+Create two directories:
+    -raxml_output: segment trees
+    -full_aligned/raxml_output: concatenated tree
+
+Part 3: Building phylogenetic trees with Parsnp
+Create one directory:
+    -parsnp_output: it has nine folders, one for each of the eight segment
+    and one for the reference. These folders all contain a file "parsnp.tree",
+    which is the phylogenetic tree in newick format; the file "parsnp.ggr" can
+    can be viewed using Gingr
 """
+
 import os
 import sys
 import shutil
@@ -16,8 +34,9 @@ full_path = "08-fasta"
 threads = 8
 
 
-threads = sys.argv[1] # 8
-
+threads = sys.argv[1]
+reference_path = sys.argv[2]
+fasta_path = sys.argv[3]
 
 def msa(path):
     """
@@ -156,26 +175,24 @@ def raxml_segments():
             shutil.move("%s.nexus"%file, "raxml_output/bootstrapping")
 
 
-def parsnp(reference):
+def parsnp(fasta, reference):
     """
     This function runs Parsnp to generate segment trees and the concatenated tree.
     It creates a directory called parsnp_output that contains the output files.
-    :param reference:
+    :param reference: path to the reference genome
     :return: NA
     """
-    # Parsnp on concatenated tree
-    os.system("parsnp -v -x -c -r reference/B_ref.fasta -d UpperB -C 1000 -o parsnp_output/concatenated")
-
-    #3. run Parsnp (fast2Tree) on 8 segments with reference
-    # view tree (parsnp.ggr) with Gingr
     os.mkdir("parsnp_output")
+
+    # Parsnp on concatenated tree with reference
+    os.system("parsnp -v -x -c -r %s -d %s -C 1000 -o parsnp_output/concatenated"%(reference, fasta))
+
+    # Parsnp (fast2Tree) on 8 segments with reference
     for dir in os.listdir("separate_frags"):
         if dir != "reference":
             os.mkdir("parsnp_output/%s"%dir)
             reference = "reference_%s.fasta"%dir
             os.system("parsnp -v -x -c -r separate_frags/reference/%s -d separate_frags/%s -C 1000 -o parsnp_output/%s"%(reference, dir, dir))
-
-
 
 # Part 1
 msa(path)
@@ -185,7 +202,7 @@ raxml_concatenated()
 raxml_segments()
 
 # Part 3
-parsnp()
+parsnp(fasta_path, reference_path)
 
 # Part 4
 # To be added: BEAST 2

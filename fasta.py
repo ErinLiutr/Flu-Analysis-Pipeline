@@ -1,3 +1,16 @@
+"""
+This is the script for generating assembled fasta files
+
+Input:
+1. id: the id of the sample we'll generate fasta file for
+2. metadata: Metadata file type2 filename
+3. type: The type of the reads (eg. In Prometheus we have UpperA and UpperB)
+4. reference: Reference genome filename
+    - For Prometheus we used A_Maryland_90_2017.fasta and B_DOC_03_2018.fasta
+
+Output: it'll create a fasta file under 08-fasta
+"""
+
 import sys
 import pandas as pd
 
@@ -5,14 +18,6 @@ id = sys.argv[1]
 metadata = sys.argv[2]
 type = sys.argv[3]
 reference = sys.argv[4]
-
-# match blinded sample number with subject & sample position
-# Usage note!!
-# metadata should be in .csv format, with name "metadata.csv"
-# sample number with column name: "ID"
-# sample group with column name: "Sample Group"
-# subject ID with column name: "Subject"
-# sampling position with column name: "Sample Type"
 
 def creat_dict():
     df = pd.read_csv("%s"%metadata)

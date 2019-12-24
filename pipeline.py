@@ -95,7 +95,7 @@ It has a separate directory for each of the 8 segment that stores
 It also has a directory called reference that stores 8 fasta files,
 each storing sequences from one segment in the reference genome.
 
-3. concatenated: has one fasta file storing the concatenated sequence
+3. concatenated: has one .fasta file storing the concatenated sequence
 """
 
 os.mkdir("fragments")
@@ -108,9 +108,15 @@ os.system("python classification.py %s %s %s %s %s"%("08-fasta", reference, "fra
 """
 Part 3: Recombination signal check
 Input:
-Output:
-"""
+1. output_dir: the path to where the output 3 seq reports will be stored
 
+Output: it'll create one directory
+1. homo_recombination:
+It has a separate directory for each of the 8 segment that stores the 3 seq 
+result of that segment
+"""
+os.mkdir("homo_recombination")
+os.system("python homo_recombination.py homo_recombination")
 
 
 """
@@ -145,10 +151,41 @@ os.system("python variant_analysis.py %s %s %s %s"%(m2, "06-vcf", "variant_analy
 Part 5 & 6: Multiple sequence alignment & Phylogenetic tree analysis
 
 Input:
+1. threads: the number of threads to be used for reconstructing phylogenetic trees
+2. reference_path: path to the reference genome
+3. fasta_path: path to the sample sequences (fasta files)
+What it does:
 
-Output:
+Part 1: Multiple sequence alignment
+Create two directories:
+    -fragments_aligned: 8 fasta files for segment alignment results
+    -full_aligned: fasta file for concatenated sequence alignment result
+
+Part 2: Building phylogenetic trees with RAxML
+Create two directories:
+    -raxml_output: segment trees
+    -full_aligned/raxml_output: concatenated tree
+
+Part 3: Building phylogenetic trees with Parsnp
+Create one directory:
+    -parsnp_output: it has nine folders, one for each of the eight segment
+    and one for the reference. These folders all contain a file "parsnp.tree", 
+    which is the phylogenetic tree in newick format; the file "parsnp.ggr" can 
+    can be viewed using Gingr
+    
+Part 4: Compare phylogenetic trees
+Create one directory 
+    -tree_comparison: it contains the tree comparison figures using three metrics
+NOTE:
+    1. BEAST2 trees haven't been integrated by this script because
+    generation of BEAST2 trees haven't been automated yet
 """
 
+# run phylo_tree.py for Part 1 - Part 3
+os.system("python phylo_tree.py %s %s %s"%(8, reference, "08-fasta"))
+
+# run tree_comparison.py for Part 4
+os.system("python tree_comparison.py")
 
 
 """
