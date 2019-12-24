@@ -4,7 +4,7 @@ This is a pipeline built for influenza virus transmission analysis.
 Analysis dataset:
 Prometheus & EMIT
 
-**What does it do:**
+**What it does:**
 1. Reference guided genome assembly
 2. Multiple sequence alignment (MAFFT)
 3. Check for homologous recombination signal 
@@ -22,7 +22,7 @@ Prometheus & EMIT
 
 **Working directory structure:**
 
-For genome assembly
+For genome assembly:
 1. 01-trimmomatic (in process)
 2. 02-bowtie2-sam
 3. 03-bam
@@ -32,23 +32,23 @@ For genome assembly
 7. 07-coverage
 8. 08-fasta
 
-For multiple sequence alignment
+For multiple sequence alignment:
 9. fragments
 10. separate_frags
 11. concatenated
 
-For homologous recombination signal check
+For homologous recombination signal check:
 12. homo_recombination
 
-For variant analysis
+For variant analysis:
 13. variant_analysis
 
-For phylogenetic analysis
+For phylogenetic analysis:
 14. raxml_output
 15. parsnp_output
 16. tree_comparison
 
-For transmission tree analysis (in process)
+For transmission tree analysis: (in process)
 
 **Metadata Example**
 Example files are all under data
